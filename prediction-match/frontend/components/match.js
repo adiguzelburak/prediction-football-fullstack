@@ -1,23 +1,18 @@
+import { useUser } from '@/context/UserContext'
+import { cn } from '@/lib/utils'
 import axios from 'axios'
 import { Pen, Trash } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
-import { Badge } from './ui/badge'
-import { cn } from '@/lib/utils'
 
 export default function Match({ matchData, predictions }) {
     const [homeScore, setHomeScore] = useState(0);
     const [guestScore, setGuestScore] = useState(0);
-    const [userInfo, setUserInfo] = useState()
-    const [isOpen, setIsOpen] = useState(false)
-
-    useEffect(() => {
-        const user = JSON.parse(localStorage.getItem('user'))
-        setUserInfo(user)
-    }, [])
+    const { user } = useUser();
 
     const deleteMatch = (matchId) => {
         axios.delete(`http://localhost:8000/api/match/${matchId}`)
@@ -30,7 +25,7 @@ export default function Match({ matchData, predictions }) {
     }
 
     const makePrediction = (matchId) => {
-        if (!userInfo) {
+        if (!user) {
             return;
         }
 
@@ -38,7 +33,7 @@ export default function Match({ matchData, predictions }) {
             `http://localhost:8000/api/predictions`, {
             homeTeamScore: homeScore,
             guestTeamScore: guestScore,
-            userId: userInfo._id,
+            userId: user._id,
             matchId: matchId
 
         })

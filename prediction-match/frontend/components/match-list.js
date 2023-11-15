@@ -1,17 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import Match from './match'
+import { useUser } from '@/context/UserContext';
 
 export default function MatchList({ matches, predictions }) {
-    const [userInfo, setUserInfo] = useState()
-    useEffect(() => {
-        const user = JSON.parse(localStorage.getItem('user'))
-        setUserInfo(user)
-    }, [])
-
+    const { user } = useUser();
 
     return (
         <div className=''>
-            {userInfo && <div className='text-xl font-semibold mb-4 text-center'>{userInfo.username} Match List</div>}
+            {user && <div className='text-xl font-semibold mb-4 text-center'>{user.username} Match List</div>}
             <div className='font-medium text-center mb-6'>
                 <div className='text-blue-500'>*** User's predictions *** </div>
                 <div className='text-green-500'>*** Matches Official Result ***</div>

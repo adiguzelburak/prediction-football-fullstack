@@ -7,16 +7,18 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import { useUser } from "@/context/UserContext";
 import axios from "axios"
 
 import { ArrowRight, Trash2 } from 'lucide-react'
 
 
 export default function LeaderShip({ users }) {
+    const { setUser } = useUser();
+
 
     const changeAuthentication = (user) => {
-        const userJson = JSON.stringify(user)
-        localStorage.setItem('user', userJson)
+        setUser(user)
     }
 
     const deleteUser = (userId) => {

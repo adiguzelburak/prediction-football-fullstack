@@ -1,27 +1,26 @@
-import MatchList from '@/components/match-list'
+import MatchList from '@/components/match-list';
 import Result from '@/components/result';
-import LeaderShip from '@/components/table'
+import LeaderShip from '@/components/table';
+import { useUser } from '@/context/UserContext';
 import axios from 'axios';
-import { Inter } from 'next/font/google'
+import { Inter } from 'next/font/google';
 import { useEffect, useState } from 'react';
 
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Home({ data, dataMatch }) {
-  // const [userInfo, setUserInfo] = useState()
+  const { user } = useUser();
   const [userPredictions, setUserPredictions] = useState()
   let randomNumber = Math.random() * 100;
   let counter = Math.floor(randomNumber)
 
 
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user'))
-    // setUserInfo(user)
 
+
+  useEffect(() => {
     axios.get(`http://localhost:8000/api/predictions/${user._id}`)
       .then(res => setUserPredictions(res.data))
-
-  }, [])
+  }, [user])
 
   const addMatch = () => {
     axios.post('http://localhost:8000/api/match', {
