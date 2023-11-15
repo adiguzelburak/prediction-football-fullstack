@@ -19,6 +19,7 @@ exports.createMatch = async (req, res) => {
         guestTeam: body.guestTeam,
         homeTeamScore: body.homeTeamScore,
         guestTeamScore: body.guestTeamScore,
+        status: body.status
     })
     try {
         const addMatch = await match.save(match)
@@ -41,7 +42,7 @@ exports.createUser = async (req, res) => {
         email: body.email,
         age: body.age,
         favouriteTeam: body.favouriteTeam,
-        userPredictions: []
+        totalPoint: body.totalPoint,
     })
 
     try {
@@ -80,8 +81,8 @@ exports.createPrediction = async (req, res) => {
 //getPrediction => to find user who guess the match scores
 
 exports.getPrediction = async (req, res) => {
-    if (req.query.id) {
-        const id = req.query.id;
+    if (req.params.id) {
+        const id = req.params.id;
         try {
             const predictorUserId = await predictionDb.aggregate([
                 {
@@ -139,6 +140,32 @@ exports.getPrediction = async (req, res) => {
     }
 }
 
+exports.getAllPrediction = async (req, res) => {
+    try {
+        const getAllDataResponse = await predictionDb.aggregate([
+            {
+                $lookup: {
+                    from: "userdbs",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "predictionOwner"
+                }
+            },
+            {
+                $lookup: {
+                    from: "matchdbs",
+                    localField: "matchId",
+                    foreignField: "_id",
+                    as: "matchScoreInfo"
+                }
+            }
+        ])
+        await res.send(getAllDataResponse)
+    } catch (error) {
+        await res.send({ message: error })
+    }
+}
+
 exports.getMatch = async (req, res) => {
     if (req.query.id) {
         const id = req.query.id;
@@ -178,4 +205,135 @@ exports.getUser = async (req, res) => {
         }
     }
 }
+
+exports.finishMatch = async (req, res) => {
+    if (req.query.id) {
+        const id = req.query.id;
+        try {
+            const updateMatchData = await matchDb.findByIdAndUpdate(id, req.body)
+            const matchDataById = await matchDb.findById(updateMatchData._id)
+
+
+            const getPredictions = await predictionDb.aggregate([
+                {
+                    $match: {
+                        matchId: new mongoose.Types.ObjectId(matchDataById._id)
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "userdbs",
+                        localField: "userId",
+                        foreignField: "_id",
+                        as: "predictionOwner"
+                    }
+                }
+            ])
+
+
+            getPredictions.forEach(async (prediction, index) => {
+                let point = 0;
+
+                // CONTROL SCORES POINTS
+                if (matchDataById.homeTeamScore === prediction.homeTeamScore) {
+                    point += 5;
+                }
+                if (matchDataById.guestTeamScore === prediction.guestTeamScore) {
+                    point += 5;
+                }
+
+                // CONTROL MATCH RESULT POINTS
+                if (matchDataById.homeTeamScore > matchDataById.guestTeamScore
+                    && prediction.homeTeamScore > prediction.guestTeamScore) {
+                    point += 3;
+                }
+                if (matchDataById.homeTeamScore < matchDataById.guestTeamScore
+                    && prediction.homeTeamScore < prediction.guestTeamScore) {
+                    point += 3;
+                }
+                if (matchDataById.homeTeamScore === matchDataById.guestTeamScore
+                    && prediction.homeTeamScore === prediction.guestTeamScore) {
+                    point += 3;
+                }
+
+                await userDb.findByIdAndUpdate(prediction.userId, {
+                    totalPoint: prediction.predictionOwner[0].totalPoint += point
+                })
+
+            })
+            await res.send({ message: 'Points are updated successfully.' })
+
+        } catch (error) {
+            await res.send({ message: error })
+        }
+    }
+    else {
+        res.send({ message: 'Match Id could not found. Try again!' })
+    }
+}
+
+
+// delete functions
+
+exports.deleteMatch = async (req, res) => {
+    const id = req.params.id;
+    if (!id) {
+        await res.status(404).send({ message: `Error occured id: ${id} doesnt exist` })
+        return;
+    }
+
+    try {
+        const deleteMatchResponse = await matchDb.findByIdAndDelete(id);
+        await res.status(200).send(deleteMatchResponse);
+    } catch (error) {
+        await res.status(404).send({ message: 'Error occured man check again. xd' })
+    }
+}
+
+exports.deleteUser = async (req, res) => {
+    const id = req.params.id;
+    if (!id) {
+        await res.status(404).send({ message: `Error occured id: ${id} doesnt exist` })
+        return;
+    }
+
+    try {
+        const deleteUserResponse = await userDb.findByIdAndDelete(id);
+        await res.status(200).send(deleteUserResponse);
+    } catch (error) {
+        await res.status(404).send({ message: 'Error occured man check again. xd' })
+    }
+}
+
+
+// update functions
+
+exports.updateMatch = async (req, res) => {
+    if (!req.body) {
+        res.send({ message: 'Content can not be empty !' })
+    } else {
+        const id = req.params.id;
+        try {
+            const updateMatchResponse = await matchDb.findByIdAndUpdate(id, req.body)
+            await res.send(updateMatchResponse)
+        } catch (error) {
+            await res.send({ message: error })
+        }
+    }
+}
+
+exports.updateUser = async (req, res) => {
+    if (!req.body) {
+        res.send({ message: 'Content can not be empty !' })
+    } else {
+        const id = req.params.id;
+        try {
+            const updateUserResponse = await userDb.findByIdAndUpdate(id, req.body)
+            await res.send(updateUserResponse)
+        } catch (error) {
+            await res.send({ message: error })
+        }
+    }
+}
+
 

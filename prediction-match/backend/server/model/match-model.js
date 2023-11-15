@@ -5,6 +5,7 @@ var matchSchema = new mongoose.Schema({
     homeTeamScore: Number,
     guestTeam: String,
     guestTeamScore: Number,
+    status: String,
 })
 
 const matchDb = mongoose.model('matchdb', matchSchema);
