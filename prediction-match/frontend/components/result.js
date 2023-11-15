@@ -21,8 +21,8 @@ export default function ({ data }) {
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-                    {data.map((match) => (
-                        <MatchResult matchData={match} />
+                    {data.map((match, index) => (
+                        <MatchResult key={index} matchData={match} />
                     ))}
                 </div>
                 <DialogFooter>

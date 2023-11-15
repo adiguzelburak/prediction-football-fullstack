@@ -27,39 +27,37 @@ export default function LeaderShip({ users }) {
 
 
     return (
-        <Table>
-            <TableCaption>A list of <span className="font-semibold">users</span>.</TableCaption>
-            <TableHeader>
-                <TableRow>
-                    <TableHead className="w-[100px]">Username</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Fav Team</TableHead>
-                    <TableHead>Age</TableHead>
-                    <TableHead>Total Point</TableHead>
-                    <TableHead>Select</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {users?.map(user => (
-                    <TableRow key={user._id} >
-                        <TableCell className="font-medium">{user.username}</TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>{user.favouriteTeam}</TableCell>
-                        <TableCell>{user.age}</TableCell>
-                        <TableCell>{user.totalPoint}</TableCell>
-                        <TableCell className="w-fit ">
-                            <ArrowRight
-                                onClick={() => changeAuthentication(user)}
-                                className="mx-auto hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black rounded-full transition-colors duration-300 w-fit cursor-pointer" />
-                        </TableCell>
-                        <TableCell className="w-fit ">
+        <>
+            <div className='text-xl font-semibold mb-4 text-center text-white underline'>Leadership Table</div>
+            <Table className='text-xs'>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Username</TableHead>
+                        <TableHead>Age</TableHead>
+                        <TableHead>Total Point</TableHead>
+                        <TableHead>Change User</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {users?.map(user => (
+                        <TableRow key={user._id} className='text-white  rounded-lg border-b'>
+                            <TableCell className="font-medium">{user.username}</TableCell>
+                            <TableCell>{user.age}</TableCell>
+                            <TableCell>{user.totalPoint}</TableCell>
+                            <TableCell>
+                                <ArrowRight
+                                    onClick={() => changeAuthentication(user)}
+                                    className="hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black rounded-full transition-colors duration-300 cursor-pointer" />
+                            </TableCell>
+                            {/* <TableCell className="w-fit ">
                             <Trash2
                                 onClick={() => deleteUser(user._id)}
                                 color="red" />
-                        </TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
+                        </TableCell> */}
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </>
     )
 }

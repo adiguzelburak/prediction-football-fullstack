@@ -18,20 +18,11 @@ export default function Home({ data, dataMatch }) {
 
 
   useEffect(() => {
-    axios.get(`http://localhost:8000/api/predictions/${user._id}`)
-      .then(res => setUserPredictions(res.data))
+    if (user._id) {
+      axios.get(`http://localhost:8000/api/predictions/${user._id}`)
+        .then(res => setUserPredictions(res.data))
+    } else { return; }
   }, [user])
-
-  const addMatch = () => {
-    axios.post('http://localhost:8000/api/match', {
-      homeTeam: 'team' + counter,
-      homeTeamScore: 4 + counter,
-      guestTeam: 'guest' + counter,
-      guestTeamScore: 3 + counter,
-      status: 'waiting'
-    })
-    counter += 1;
-  }
 
   const addUser = () => {
     axios.post('http://localhost:8000/api/add-user', {
@@ -43,17 +34,17 @@ export default function Home({ data, dataMatch }) {
     })
     counter += 1;
   }
+
   return (
     <main
-      className={`mx-auto max-w-6xl w-full py-20 justify-between text-sm flex flex-col lg:flex-row ${inter.className}`}
+      className={`mx-auto max-w-7xl py-20 justify-around text-sm flex flex-col lg:flex-row ${inter.className}`}
     >
-      <div className=''>
-        <button onClick={() => addMatch()}>add match</button>
-        <button onClick={() => addUser()}>add user</button>
+      <div className='lg:w-2/5 w-full px-4 lg:px-0'>
+        {/* <button onClick={() => addUser()}>add user</button> */}
         <Result data={dataMatch} />
         <LeaderShip users={data} />
       </div>
-      <div className='w-full'>
+      <div className='lg:w-[45%] w-full px-2 lg:px-0'>
         <MatchList
           predictions={userPredictions}
           matches={dataMatch} />

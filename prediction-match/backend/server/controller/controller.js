@@ -6,28 +6,37 @@ const mongoose = require('mongoose');
 
 // create routers
 exports.createMatch = async (req, res) => {
-    if (!req.body) {
-        res.status(400).send({ message: 'Content can not be empty !' })
-        return;
-    }
 
-    const body = req.body
-    var today = new Date();
-    today.setHours(today.getHours() + 4);
-    const match = new matchDb({
-        homeTeam: body.homeTeam,
-        guestTeam: body.guestTeam,
-        homeTeamScore: body.homeTeamScore,
-        guestTeamScore: body.guestTeamScore,
-        status: body.status
+    await fetch('https://api.football-data.org/v4/competitions/PL/matches?matchday=13', {
+        headers: {
+            "X-Auth-Token": '128d97c597b04b05aa4e46632dc3246e',
+        }
     })
-    try {
-        const addMatch = await match.save(match)
-        await res.send(addMatch);
-    } catch (error) {
-        console.log(error)
-        res.send(() => { message: error })
-    }
+        .then(res => res.json())
+        .then(response => {
+            response.matches.map(async (singleMatch) => {
+                if (!singleMatch) {
+                    res.status(400).send({ message: 'Content can not be empty !' })
+                    return;
+                }
+
+                const match = new matchDb({
+                    homeTeam: singleMatch.homeTeam,
+                    awayTeam: singleMatch.awayTeam,
+                    matchDay: singleMatch.matchDay,
+                    status: singleMatch.status,
+                    score: singleMatch.score,
+                    utcDate: singleMatch.utcDate
+                })
+                try {
+                    await match.save(match)
+                } catch (error) {
+                    console.log(error)
+                    res.send(() => { message: error })
+                }
+            })
+        })
+        .then(() => res.send({ message: 'Matches are fetched successfully' }))
 }
 
 exports.createUser = async (req, res) => {
