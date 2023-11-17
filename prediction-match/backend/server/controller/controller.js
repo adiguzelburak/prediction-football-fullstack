@@ -2,6 +2,8 @@ var matchDb = require('../model/match-model')
 var userDb = require('../model/user-model')
 var predictionDb = require('../model/prediction-model')
 const mongoose = require('mongoose');
+const jwt = require('jwt-simple')
+const config = require('../../middleware/config')
 
 
 // create routers
@@ -35,8 +37,8 @@ exports.createMatch = async (req, res) => {
                     res.send(() => { message: error })
                 }
             })
+            res.send({ message: 'Matches are fetched successfully' })
         })
-        .then(() => res.send({ message: 'Matches are fetched successfully' }))
 }
 
 exports.createUser = async (req, res) => {
@@ -222,7 +224,6 @@ exports.finishMatch = async (req, res) => {
             const updateMatchData = await matchDb.findByIdAndUpdate(id, req.body)
             const matchDataById = await matchDb.findById(updateMatchData._id)
 
-
             const getPredictions = await predictionDb.aggregate([
                 {
                     $match: {
@@ -345,4 +346,56 @@ exports.updateUser = async (req, res) => {
     }
 }
 
+
+// authentication functions
+
+exports.login = async (req, res) => {
+    try {
+        let loginResponse = await userDb.findOne({ username: req.body.username })
+        if (loginResponse) {
+            const payload = {
+                id: loginResponse._id,
+                expire: Date.now() + 1000 * 60 * 60 * 24 * 7
+            }
+
+            const token = jwt.encode(payload, config.jwtSecret)
+            console.log('token => ', token)
+            res.send({ message: 'Successfully', token: token })
+        }
+    } catch (error) {
+        res.send({ message: error })
+    }
+
+
+    // console.log(loginResponse)
+
+}
+
+exports.register = async (req, res) => {
+    userDb.register(
+        new userDb({
+            email: req.body.email,
+            username: req.body.username,
+            age: req.body.age,
+            favouriteTeam: req.body.favouriteTeam,
+            totalPoint: req.body.totalPoint,
+        }), req.body.password,
+        (err, msg) => {
+            if (err) {
+                console.log('register error', err)
+                res.send(err)
+            } else {
+                res.send({ message: 'created successfully', user: msg })
+            }
+        }
+    )
+}
+
+exports.profile = async (req, res) => {
+    res.json({
+        message: 'you made it to the secured profile',
+        user: req.user,
+        token: req.query.secret_token
+    })
+}
 

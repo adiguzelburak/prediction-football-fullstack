@@ -6,31 +6,27 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import Cookies from "js-cookie";
+import Link from "next/link";
 
-
-export function SignUp() {
+export function Login() {
     const [username, setUsername] = useState('');
-    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [age, setAge] = useState('');
-    const [favTeam, setFavTeam] = useState('');
     const [isLoading, setIsloading] = useState(false);
     const router = useRouter();
 
-    const register = async () => {
+    const login = async () => {
         setIsloading(true)
         try {
-            await axios.post('http://localhost:8000/api/register', {
-                username: username,
-                email: email,
-                age: age,
-                totalPoint: 0,
-                favouriteTeam: favTeam,
-                password: password
+
+            let getToken = await axios.post('http://localhost:8000/api/login', {
+                username,
+                password
             })
 
             setIsloading(false);
-            router.push('/login');
+            Cookies.set('token', getToken.data.token)
+            router.push('/');
         } catch (error) {
             console.log(error);
             setIsloading(false);
@@ -44,9 +40,9 @@ export function SignUp() {
     return (
         <Card>
             <CardHeader className="space-y-1">
-                <CardTitle className="text-2xl">Create an account</CardTitle>
+                <CardTitle className="text-2xl">Login</CardTitle>
                 <CardDescription>
-                    Enter your information below to create your account
+                    Enter your information below to login account
                 </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 ">
@@ -65,28 +61,21 @@ export function SignUp() {
                     <Input onChange={(e) => onChangeHandler(e, setUsername)} id="name" type="text" placeholder="johndoe41" />
                 </div>
                 <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input onChange={(e) => onChangeHandler(e, setEmail)} id="email" type="email" placeholder="m@example.com" />
-                </div>
-                <div className="grid gap-2">
                     <Label htmlFor="password">Password</Label>
                     <Input onChange={(e) => onChangeHandler(e, setPassword)} id="password" type="password" placeholder="******" />
                 </div>
                 <div className="grid gap-2">
-                    <Label htmlFor="age">Age</Label>
-                    <Input onChange={(e) => onChangeHandler(e, setAge)} id="age" type="text" placeholder="18" />
-                </div>
-                <div className="grid gap-2">
-                    <Label htmlFor="favourite-team">Favourite Team</Label>
-                    <Input onChange={(e) => onChangeHandler(e, setFavTeam)} id="favourite-team" type="text" placeholder="Fenerbahçe" />
+                    <Label htmlFor="password">
+                        <Link href='/register' className="underline">Do you have account already?</Link>
+                    </Label>
                 </div>
 
             </CardContent>
             <CardFooter>
-                <Button className="w-full" onClick={() => register()}>
+                <Button className="w-full" onClick={() => login()}>
                     {isLoading
                         ? <span className="animate-spin"><Loader /></span>
-                        : 'Create account'
+                        : 'Login'
                     }
                 </Button>
             </CardFooter>

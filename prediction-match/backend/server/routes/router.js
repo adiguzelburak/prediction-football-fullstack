@@ -1,5 +1,6 @@
 const express = require('express')
 const route = express.Router();
+const passport = require('passport')
 
 const controller = require('../controller/controller')
 
@@ -23,5 +24,11 @@ route.get('/api/all-predictions', controller.getAllPrediction)
 // 
 
 route.put('/api/finish-match', controller.finishMatch)
+
+// authentication routes
+
+route.post('/api/register', controller.register)
+route.get('/api/profile', passport.authenticate('jwt', { session: false }), controller.profile)
+route.post('/api/login', passport.authenticate('local'), controller.login)
 
 module.exports = route;

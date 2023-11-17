@@ -57,8 +57,6 @@ export default function Match({ matchData, predictions }) {
         }
     }
 
-    console.log(playedMatches('homeTeamScore'), playedMatches('guestTeamScore'))
-
     return (
         <div className="flex items-center justify-around space-x-2 text-white">
             <div className='grid grid-cols-4 lg:grid-cols-3 gap-3 w-[660px] transition-colors hover:bg-muted/50 h-[70px] shadow-sm shadow-white rounded-lg'>
