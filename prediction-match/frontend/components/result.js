@@ -13,15 +13,15 @@ export default function ({ data }) {
             <DialogTrigger asChild>
                 <Table />
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[625px]">
+            <DialogContent className="sm:max-w-[625px] text-white ">
                 <DialogHeader>
-                    <DialogTitle>Enter the Results</DialogTitle>
-                    <DialogDescription>
-                        ONLY ADMIN ***
+                    <DialogTitle className='text-center'>Enter the Results</DialogTitle>
+                    <DialogDescription className='text-center'>
+                        *** ONLY ADMIN ***
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-                    {data.map((match, index) => (
+                    {data?.map((match, index) => (
                         <MatchResult key={index} matchData={match} />
                     ))}
                 </div>

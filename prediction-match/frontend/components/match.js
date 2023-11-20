@@ -1,47 +1,70 @@
 import { useUser } from '@/context/UserContext'
 import { cn } from '@/lib/utils'
 import axios from 'axios'
-import { Loader, Sparkle } from 'lucide-react'
+import Cookies from 'js-cookie'
+import { Loader } from 'lucide-react'
 import moment from 'moment'
-import { useState } from 'react'
+import Image from 'next/image'
+import { useEffect, useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { Badge } from './ui/badge'
 import { Button } from './ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog'
-import { Input } from './ui/input'
 import { Label } from './ui/label'
-import Image from 'next/image'
+import Picker from './ui/picker'
 
 
 export default function Match({ matchData, predictions }) {
     const [homeScore, setHomeScore] = useState(0);
     const [guestScore, setGuestScore] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
-    const { user } = useUser();
+    const [isLoggedIn, setIsLoggedIn] = useState('');
+    const [open, setOpen] = useState(false);
+    const { user, isAuth } = useUser();
 
-    const guessScoreHandler = (e, state) => {
-        let score = parseInt(e.target.value);
+    useEffect(() => {
+        if (!Cookies.get('user')) {
+            return;
+        }
+        const loggedUser = JSON.parse(Cookies.get('user'))
+        if (user._id !== loggedUser._id) {
+            setIsLoggedIn(false);
+        } else {
+            setIsLoggedIn(true)
+        }
+    }, [user])
 
-        score < 12 ? state(score) : console.log('cannot be bigger than 12');
-    }
+
+
+    const handleValueChange = (selectedValue, state) => {
+        state(selectedValue.score);
+    };
+
     const makePrediction = (matchId) => {
-        if (!user._id) {
+        const token = Cookies.get('token')
+        if (!user._id || !token) {
             return;
         }
         setIsLoading(true)
+        if (isLoggedIn) {
+            axios.post(
+                `http://localhost:8000/api/predictions`, {
+                homeTeamScore: homeScore,
+                guestTeamScore: guestScore,
+                userId: user._id,
+                matchId: matchId,
+                token: token
+            })
+                .then(() => setIsLoading(false))
+                .catch((err) => setTimeout(() => {
+                    alert(err)
+                    setIsLoading(false)
+                }, 1000))
+        } else {
+            alert('You have to login to :', user._id, ' account')
+        }
 
-        axios.post(
-            `http://localhost:8000/api/predictions`, {
-            homeTeamScore: homeScore,
-            guestTeamScore: guestScore,
-            userId: user._id,
-            matchId: matchId
-        })
-            .then(() => setIsLoading(false))
-            .catch((err) => setTimeout(() => {
-                console.log(err)
-                setIsLoading(false)
-            }, 5000))
+
     }
 
     const findItem = (matchId) => {
@@ -55,6 +78,11 @@ export default function Match({ matchData, predictions }) {
         } else {
             return ''
         }
+    }
+
+    const predictionHandle = (matchId) => {
+        makePrediction(matchId)
+        setOpen(false)
     }
 
     return (
@@ -78,9 +106,12 @@ export default function Match({ matchData, predictions }) {
                         <div>
                             {playedMatches('homeTeamScore') && playedMatches('guestTeamScore')
                                 ? <Badge variant="outline" className={cn('text-yellow-800 bg-yellow-100 uppercase border-none')}>{`${playedMatches('homeTeamScore')} - ${playedMatches('guestTeamScore')}`}</Badge>
-                                : <Dialog>
+                                : <Dialog open={isAuth && isLoggedIn ? open : false} onOpenChange={isLoggedIn ? setOpen : null}>
                                     <DialogTrigger asChild>
-                                        <Badge variant="outline" className={cn('text-green-800 bg-green-100 uppercase border-none cursor-pointer')}>Make</Badge>
+                                        <Badge variant="outline"
+                                            className={cn(isAuth && isLoggedIn ? 'cursor-pointer' : 'cursor-not-allowed', 'text-green-800 bg-green-100 uppercase border-none')}>
+                                            Make
+                                        </Badge>
                                     </DialogTrigger>
                                     <DialogContent className="sm:max-w-[425px] bg-gray-800">
                                         <DialogHeader>
@@ -90,39 +121,31 @@ export default function Match({ matchData, predictions }) {
                                             </DialogDescription>
                                         </DialogHeader>
                                         <div className="grid gap-4 py-4 text-white">
-                                            <div className="grid grid-cols-2 items-center">
+                                            <div className="">
                                                 <div className='flex items-center'>
-                                                    <Image src={matchData.homeTeam.crest} width={50} height={50} className='rounded-full w-6 h-6' />
-                                                    <Label htmlFor="name" className="text-right ml-4">
+                                                    <Image src={matchData.homeTeam.crest} width={50} height={50} className='w-8 h-8' />
+                                                    <Label htmlFor="name" className="text-right ml-4 text-lg">
                                                         {matchData.homeTeam.shortName}
                                                     </Label>
                                                 </div>
-                                                <Input
-                                                    id="home-team-score"
-                                                    defaultValue="0"
-                                                    onChange={(e) => guessScoreHandler(e, setHomeScore)}
-                                                />
+
+                                                <Picker onValueChange={(value) => handleValueChange(value, setHomeScore)} />
                                             </div>
-                                            <div className="grid grid-cols-2 items-center">
+                                            <hr />
+                                            <div className="">
                                                 <div className='flex items-center'>
-                                                    <Image src={matchData.awayTeam.crest} width={50} height={50} className='rounded-full w-6 h-6' />
-                                                    <Label htmlFor="username" className="ml-4">
+                                                    <Image src={matchData.awayTeam.crest} width={50} height={50} className=' w-8 h-8' />
+                                                    <Label htmlFor="username" className="ml-4 text-lg">
                                                         {matchData.awayTeam.shortName}
                                                     </Label>
                                                 </div>
-                                                <Input
-                                                    id="guess-team-score"
-                                                    defaultValue="0"
-                                                    onChange={(e) => guessScoreHandler(e, setGuestScore)}
-                                                />
+                                                <Picker onValueChange={(value) => handleValueChange(value, setGuestScore)} />
                                             </div>
                                         </div>
                                         <DialogFooter>
                                             <Button
                                                 className='bg-green-500'
-                                                onClick={() => {
-                                                    makePrediction(matchData._id)
-                                                }}>
+                                                onClick={() => predictionHandle(matchData._id)}>
                                                 {isLoading
                                                     ? <span className="animate-spin"><Loader /></span>
                                                     : 'Confirm'
@@ -154,9 +177,6 @@ export default function Match({ matchData, predictions }) {
                         <AvatarFallback>{matchData.awayTeam.tla}</AvatarFallback>
                     </Avatar>
                 </div>
-
-            </div>
-            <div className='flex items-center'>
 
             </div>
         </div >

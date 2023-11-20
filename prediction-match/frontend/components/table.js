@@ -10,7 +10,7 @@ import { useUser } from "@/context/UserContext";
 import { cn } from "@/lib/utils";
 
 export default function LeaderShip({ users }) {
-    const { user } = useUser();
+    const { user, setUser } = useUser();
 
     return (
         <>
@@ -25,10 +25,10 @@ export default function LeaderShip({ users }) {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {users.map(_user => (
-                        <TableRow key={_user._id}
-                            className={cn(user._id === _user._id && 'bg-green-700',
-                                'text-white  rounded-lg border-b')}>
+                    {users?.map(_user => (
+                        <TableRow key={_user._id} onClick={() => setUser(_user)}
+                            className={cn(user?._id === _user._id && 'bg-green-700',
+                                'text-white  rounded-lg border-b cursor-pointer')}>
                             <TableCell className="font-medium">{_user.username}</TableCell>
                             <TableCell>{_user.age}</TableCell>
                             <TableCell className='capitalize'>{_user.favouriteTeam}</TableCell>

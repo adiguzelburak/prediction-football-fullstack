@@ -18,6 +18,7 @@ import { Input } from './ui/input'
 import { Label } from './ui/label'
 import { Badge } from "./ui/badge"
 import axios from "axios"
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 
 const statuses = [
     {
@@ -38,7 +39,7 @@ export default function MatchResult({ matchData }) {
     const guessScoreHandler = (e, state) => {
         let score = parseInt(e.target.value);
 
-        score < 12 ? state(score) : console.log('cannot be bigger than 12');
+        score < 12 ? state(score) : alert('cannot be bigger than 12');
     }
 
     const enterMatchResult = async () => {
@@ -54,25 +55,45 @@ export default function MatchResult({ matchData }) {
 
 
     return (
-        <div className="flex items-center gap-4">
-            <Label htmlFor="name" className="text-right w-1/3">
-                {matchData.homeTeam}
-            </Label>
-            <Input
-                id="home-team-score"
-                defaultValue={matchData.homeTeamScore}
-                className="col-span-3 w-1/5"
-                onChange={(e) => guessScoreHandler(e, setHomeScore)}
-            />
-            <Input
-                id="guess-team-score"
-                defaultValue={matchData.guestTeamScore}
-                className="col-span-3 w-1/5"
-                onChange={(e) => guessScoreHandler(e, setGuestScore)}
-            />
-            <Label htmlFor="username" className="text-left w-1/3">
-                {matchData.guestTeam}
-            </Label>
+        <div className="flex items-center gap-4 text-white">
+            <div className="flex items-center">
+                <div className='flex items-center justify-end text-right w-2/5'>
+                    <div>
+                        <p className="lg:block hidden text-sm mr-1 font-medium leading-none">{matchData.homeTeam.shortName}</p>
+                        <p className="lg:hidden block text-sm mr-1 font-medium leading-none">{matchData.homeTeam.tla}</p>
+                    </div>
+                    <Avatar>
+                        <AvatarImage className='scale-90 rounded-none' src={matchData.homeTeam.crest} />
+                        <AvatarFallback>{matchData.homeTeam.tla}</AvatarFallback>
+                    </Avatar>
+                </div>
+                <div className="flex items-center justify-around w-1/5">
+                    <Input
+                        id="home-team-score"
+                        defaultValue={matchData.score.home && matchData.score.home}
+                        className="col-span-3 w-full pl-1.5 px-0"
+                        onChange={(e) => guessScoreHandler(e, setHomeScore)}
+                    />
+                    <Input
+                        id="guess-team-score"
+                        defaultValue={matchData.score.away && matchData.score.away}
+                        className="col-span-3 w-full pl-1.5 px-0"
+                        onChange={(e) => guessScoreHandler(e, setGuestScore)}
+                    />
+                </div>
+                <div className='flex flex-row-reverse justify-end items-center w-2/5'>
+                    <div>
+                        <p className="lg:block hidden text-sm ml-1 font-medium leading-none">{matchData.awayTeam.shortName}</p>
+                        <p className="lg:hidden block text-sm ml-1 font-medium leading-none">{matchData.awayTeam.tla}</p>
+                    </div>
+                    <Avatar>
+                        <AvatarImage className='scale-90' src={matchData.awayTeam.crest} />
+                        <AvatarFallback>{matchData.awayTeam.tla}</AvatarFallback>
+                    </Avatar>
+                </div>
+            </div>
+
+
 
             <Button className='w-[150px]' onClick={() => {
                 enterMatchResult();

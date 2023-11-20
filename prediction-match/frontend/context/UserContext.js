@@ -18,9 +18,10 @@ export const useUser = () => useContext(UserContext);
 
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(users)
+    const [isAuth, setIsAuth] = useState(false)
 
     return (
-        <UserContext.Provider value={{ user, setUser }}>
+        <UserContext.Provider value={{ user, setUser, isAuth, setIsAuth }}>
             {children}
         </UserContext.Provider>
     )

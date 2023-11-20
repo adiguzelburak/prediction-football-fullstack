@@ -53,11 +53,13 @@ exports.createUser = async (req, res) => {
         email: body.email,
         age: body.age,
         favouriteTeam: body.favouriteTeam,
-        totalPoint: body.totalPoint,
+        totalPoint: 0,
     })
+    console.log(user)
 
     try {
         const userSave = await user.save(user)
+        console.log(user, 'saved !')
         await res.send(userSave)
 
     } catch (error) {
@@ -66,8 +68,13 @@ exports.createUser = async (req, res) => {
 }
 
 exports.createPrediction = async (req, res) => {
+    console.log(req.body)
     if (!req.body) {
         res.status(400).send({ message: 'Content can not be empty !' })
+        return;
+    }
+    else if (!req.body.token) {
+        res.status(401).send({ message: 'Unauthorized, you have to login to prediction' })
         return;
     }
     const body = req.body
@@ -363,7 +370,7 @@ exports.login = async (req, res) => {
             res.send({ message: 'Successfully', token: token })
         }
     } catch (error) {
-        res.send({ message: error })
+        res.send({ message: 'User doesnt exist' })
     }
 
 
@@ -378,14 +385,14 @@ exports.register = async (req, res) => {
             username: req.body.username,
             age: req.body.age,
             favouriteTeam: req.body.favouriteTeam,
-            totalPoint: req.body.totalPoint,
+            totalPoint: 0,
         }), req.body.password,
         (err, msg) => {
             if (err) {
                 console.log('register error', err)
                 res.send(err)
             } else {
-                res.send({ message: 'created successfully', user: msg })
+                res.send({ status: 200, message: 'Successfully', user: msg })
             }
         }
     )

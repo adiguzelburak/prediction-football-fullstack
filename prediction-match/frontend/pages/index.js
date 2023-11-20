@@ -4,32 +4,59 @@ import Result from '@/components/result';
 import LeaderShip from '@/components/table';
 import { useUser } from '@/context/UserContext';
 import axios from 'axios';
+import Cookies from 'js-cookie';
 import { Inter } from 'next/font/google';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const inter = Inter({ subsets: ['latin'] })
 
-export default function Home({ data, dataMatch, dataUser, dataPredictions }) {
-  const { setUser } = useUser();
+export default function Home({ dataUsers, dataMatch, dataProfile, dataPredictions }) {
+  const { user, setUser, setIsAuth } = useUser();
+  const [predictionsData, setPredictionsData] = useState();
+  const [openPanelCounter, setOpenPanelCounter] = useState(0);
+
+  const panelCode = () => {
+    if (openPanelCounter <= 5) {
+      setOpenPanelCounter(prev => prev + 1);
+    } else {
+      setOpenPanelCounter(0)
+    }
+  }
 
   useEffect(() => {
-    setUser(dataUser)
-  }, [dataUser])
+    if (dataProfile) {
+      setIsAuth(true)
+      setUser(dataProfile)
+      Cookies.set('user', JSON.stringify(dataProfile))
+      setPredictionsData(dataPredictions)
+    } else {
+      setIsAuth(false)
+    }
+  }, [dataProfile])
+
+  useEffect(() => {
+    if (user?._id) {
+      axios.get(`http://localhost:8000/api/predictions/${user._id}`)
+        .then((res) => setPredictionsData(res.data))
+    }
+  }, [user])
+
 
   return (
     <main
       className={`mx-auto max-w-7xl py-0 lg:py-4  text-sm ${inter.className}`}
     >
-      <div><Navbar /></div>
+      <div onClick={() => panelCode()} className='cursor-pointer'><Navbar /></div>
+      {openPanelCounter === 5 && <Result data={dataMatch} />}
+
       <div className=' flex flex-col lg:flex-row justify-around'>
         <div className='lg:w-2/5 w-full px-4 lg:px-0'>
           {/* <button onClick={() => addUser()}>add user</button> */}
-          <Result data={dataMatch} />
-          <LeaderShip users={data} />
+          <LeaderShip users={dataUsers} />
         </div>
         <div className='lg:w-[45%] w-full px-2 lg:px-0'>
           <MatchList
-            predictions={dataPredictions}
+            predictions={predictionsData}
             matches={dataMatch} />
         </div>
       </div>
@@ -40,24 +67,35 @@ export default function Home({ data, dataMatch, dataUser, dataPredictions }) {
 export async function getServerSideProps(context) {
   const { req } = context
 
-  try {
-    const resUser = await axios.get(`http://localhost:8000/api/profile`, { headers: { "Authorization": `Bearer ${req.cookies.token}` } })
-    const res = await fetch(`http://localhost:8000/api/users`)
-    const resMatch = await fetch(`http://localhost:8000/api/match`)
-    const resPredictions = await axios.get(`http://localhost:8000/api/predictions/${resUser.data.user._id}`)
+  if (req.cookies.token) {
+    try {
+      const resUsers = await fetch(`http://localhost:8000/api/users`)
+      const resMatch = await fetch(`http://localhost:8000/api/match`)
+      const resProfile = await axios.get(`http://localhost:8000/api/profile`, { headers: { "Authorization": `Bearer ${req.cookies.token}` } })
+      const resPredictions = await axios.get(`http://localhost:8000/api/predictions/${resProfile.data.user._id}`)
 
-    const data = await res.json()
-    const dataMatch = await resMatch.json()
-    const dataUser = await resUser.data.user;
-    const dataPredictions = await resPredictions.data;
+      const dataUsers = await resUsers.json();
+      const dataMatch = await resMatch.json();
+      const dataProfile = await resProfile.data.user;
+      const dataPredictions = await resPredictions.data;
 
-    return { props: { data, dataMatch, dataUser, dataPredictions } }
-  } catch (error) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
+      return { props: { dataUsers, dataMatch, dataProfile, dataPredictions } }
+    } catch (error) {
+      return { props: { message: 'Something went wrong' } };
+    }
   }
+  else {
+    try {
+      const resUsers = await fetch(`http://localhost:8000/api/users`)
+      const resMatch = await fetch(`http://localhost:8000/api/match`)
+
+      const dataUsers = await resUsers.json();
+      const dataMatch = await resMatch.json();
+
+      return { props: { dataUsers, dataMatch } }
+    } catch (error) {
+      return { props: { message: 'Visitor' } };
+    }
+  }
+
 }

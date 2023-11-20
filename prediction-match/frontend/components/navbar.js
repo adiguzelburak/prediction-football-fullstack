@@ -8,12 +8,18 @@ import { LogOut } from 'lucide-react'
 
 
 export default function Navbar() {
-    const { user } = useUser();
+    const { user, isAuth, setIsAuth } = useUser();
 
     const router = useRouter();
 
     const logout = () => {
+        setIsAuth(false);
         Cookies.remove('token')
+        Cookies.remove('user')
+        router.push('/login')
+    }
+
+    const login = () => {
         router.push('/login')
     }
 
@@ -33,26 +39,26 @@ export default function Navbar() {
                                 </div>
                                 <div className="sm:ml-6 block">
                                     <div className="flex space-x-4">
-                                        <div className={cn('text-green-600',
+                                        <div className={cn('text-lime-300',
                                             'rounded-md px-3 py-2 text-sm font-medium'
                                         )}>
-                                            Welcome {user.username}
+                                            {isAuth ? user?.username : 'Visitor'}
                                         </div>
                                         <div className={cn('text-gray-300 hover:bg-gray-700 hover:text-white',
                                             'rounded-md px-3 py-2 text-sm font-medium'
                                         )}>
-                                            Point: {user.totalPoint}
+                                            {isAuth && <div>Point: {user?.totalPoint}</div>}
                                         </div>
                                     </div>
 
                                 </div>
                             </div>
                             <Button
-                                onClick={() => logout()}
+                                onClick={isAuth ? () => logout() : () => login()}
                                 className='text-white bg-blue-500 space-x-2'
                             >
                                 <div><LogOut className='w-5 h-5' /></div>
-                                <div>Logout</div>
+                                <div>{isAuth ? 'Logout' : 'Login'}</div>
                             </Button>
                         </div>
                     </div>
@@ -62,17 +68,18 @@ export default function Navbar() {
                             <div className={cn('text-gray-300 hover:bg-gray-700 hover:text-white',
                                 'rounded-md px-3 py-2 text-sm font-medium'
                             )}>
-                                Welcome {user.username}
+                                Welcome {isAuth ? user?.username : 'Visitor'}
                             </div>
                             <div className={cn('text-gray-300 hover:bg-gray-700 hover:text-white',
                                 'rounded-md px-3 py-2 text-sm font-medium'
                             )}>
-                                Point: {user.totalPoint}
+                                {isAuth && <div>Point: {user?.totalPoint}</div>}
                             </div>
                         </div>
                     </Disclosure.Panel>
                 </>
-            )}
-        </Disclosure>
+            )
+            }
+        </Disclosure >
     )
 }

@@ -10,3 +10,19 @@ export default function Register() {
         </div>
     )
 }
+
+export async function getServerSideProps(context) {
+    const { req } = context
+
+    if (req.cookies.token) {
+        return {
+            redirect: {
+                destination: '/',
+                permanent: false,
+            },
+        };
+    }
+    else {
+        return { props: { message: 'You are already logged.' } }
+    }
+}
