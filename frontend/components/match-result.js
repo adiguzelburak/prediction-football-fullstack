@@ -19,6 +19,7 @@ import { Label } from './ui/label'
 import { Badge } from "./ui/badge"
 import axios from "axios"
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
+import { useUser } from "@/context/UserContext"
 
 const statuses = [
     {
@@ -35,6 +36,7 @@ export default function MatchResult({ matchData }) {
     const [homeScore, setHomeScore] = useState(0);
     const [guestScore, setGuestScore] = useState(0);
     const [isChanged, setIsChanged] = useState(false)
+    const { isMatchDataChanged, setIsMatchDataChanged } = useUser();
 
     const guessScoreHandler = (e, state) => {
         let score = parseInt(e.target.value);
@@ -44,13 +46,19 @@ export default function MatchResult({ matchData }) {
 
     const enterMatchResult = async () => {
         setIsChanged(true);
-        await axios.put(`http://localhost:8000/api/finish-match?id=${matchData._id}`,
+        await axios.put(`https://prediction-game-backend-bb3bc6afab92.herokuapp.com/api/finish-match?id=${matchData._id}`,
             {
-                homeTeamScore: homeScore,
-                guestTeamScore: guestScore,
-                status: 'finished'
+                score: {
+                    fullTime: {
+                        home: homeScore,
+                        away: guestScore,
+                    }
+                },
+                status: 'FINISHED'
             })
         setIsChanged(false);
+
+        setIsMatchDataChanged(!isMatchDataChanged);
     }
 
 

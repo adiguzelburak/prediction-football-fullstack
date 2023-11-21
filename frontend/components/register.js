@@ -66,7 +66,7 @@ export function SignUp() {
                     onSubmit={async (values, { setSubmitting }) => {
                         setIsloading(true)
                         try {
-                            let registerResponse = await axios.post('http://localhost:8000/api/register', {
+                            let registerResponse = await axios.post('https://prediction-game-backend-bb3bc6afab92.herokuapp.com/api/register', {
                                 username: values.username,
                                 email: values.email,
                                 age: values.age,

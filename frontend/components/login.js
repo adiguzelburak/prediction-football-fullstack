@@ -54,7 +54,7 @@ export function Login() {
                     onSubmit={async (values, { setSubmitting }) => {
                         setIsloading(true)
                         try {
-                            let getToken = await axios.post('http://localhost:8000/api/login', {
+                            let getToken = await axios.post('https://prediction-game-backend-bb3bc6afab92.herokuapp.com/api/login', {
                                 username: values.username,
                                 password: values.password
                             })
@@ -94,7 +94,7 @@ export function Login() {
                             {errors.password && <ErrorMessage message={errors.password && touched.password && errors.password} />}
                             <div className="grid gap-2">
                                 <Label htmlFor="register">
-                                    <Link href='/register' className="underline">Don't you have an account?</Link>
+                                    <Link href='/register' className="underline">{"Don't you have an account?"}</Link>
                                 </Label>
                             </div>
                             {errorMessage && (

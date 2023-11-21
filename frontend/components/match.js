@@ -20,7 +20,7 @@ export default function Match({ matchData, predictions }) {
     const [isLoading, setIsLoading] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState('');
     const [open, setOpen] = useState(false);
-    const { user, isAuth } = useUser();
+    const { user, isAuth, setIsPredictioned, isPredictioned } = useUser();
 
     useEffect(() => {
         if (!Cookies.get('user')) {
@@ -34,8 +34,6 @@ export default function Match({ matchData, predictions }) {
         }
     }, [user])
 
-
-
     const handleValueChange = (selectedValue, state) => {
         state(selectedValue.score);
     };
@@ -48,14 +46,17 @@ export default function Match({ matchData, predictions }) {
         setIsLoading(true)
         if (isLoggedIn) {
             axios.post(
-                `http://localhost:8000/api/predictions`, {
+                `https://prediction-game-backend-bb3bc6afab92.herokuapp.com/api/predictions`, {
                 homeTeamScore: homeScore,
                 guestTeamScore: guestScore,
                 userId: user._id,
                 matchId: matchId,
                 token: token
             })
-                .then(() => setIsLoading(false))
+                .then(() => {
+                    setIsPredictioned(!isPredictioned)
+                    setIsLoading(false)
+                })
                 .catch((err) => setTimeout(() => {
                     alert(err)
                     setIsLoading(false)
@@ -63,8 +64,6 @@ export default function Match({ matchData, predictions }) {
         } else {
             alert('You have to login to :', user._id, ' account')
         }
-
-
     }
 
     const findItem = (matchId) => {
@@ -83,6 +82,16 @@ export default function Match({ matchData, predictions }) {
     const predictionHandle = (matchId) => {
         makePrediction(matchId)
         setOpen(false)
+    }
+
+    const isCorrectScore = (predHome, predAway, resultHome, resultAway, status) => {
+        if (status !== 'FINISHED') {
+            return 'text-yellow-800 bg-yellow-100'
+        }
+
+        else if (predHome === resultHome && predAway === resultAway && status === 'FINISHED') {
+            return 'text-white bg-green-800'
+        } else { return 'text-white bg-red-600' }
     }
 
     return (
@@ -104,8 +113,15 @@ export default function Match({ matchData, predictions }) {
                         <div>Prediction</div>
 
                         <div>
-                            {playedMatches('homeTeamScore') && playedMatches('guestTeamScore')
-                                ? <Badge variant="outline" className={cn('text-yellow-800 bg-yellow-100 uppercase border-none')}>{`${playedMatches('homeTeamScore')} - ${playedMatches('guestTeamScore')}`}</Badge>
+                            {playedMatches('homeTeamScore') !== ''
+                                ? <Badge variant="outline" className={cn(
+                                    isCorrectScore(
+                                        playedMatches('homeTeamScore'),
+                                        playedMatches('guestTeamScore'),
+                                        matchData.score.fullTime.home,
+                                        matchData.score.fullTime.away,
+                                        matchData.status),
+                                    'uppercase border-none')}>{`${playedMatches('homeTeamScore')} - ${playedMatches('guestTeamScore')}`}</Badge>
                                 : <Dialog open={isAuth && isLoggedIn ? open : false} onOpenChange={isLoggedIn ? setOpen : null}>
                                     <DialogTrigger asChild>
                                         <Badge variant="outline"
@@ -123,7 +139,7 @@ export default function Match({ matchData, predictions }) {
                                         <div className="grid gap-4 py-4 text-white">
                                             <div className="">
                                                 <div className='flex items-center'>
-                                                    <Image src={matchData.homeTeam.crest} width={50} height={50} className='w-8 h-8' />
+                                                    <Image priority alt={matchData.homeTeam.crest} src={matchData.homeTeam.crest} width={50} height={50} className='w-8 h-8' />
                                                     <Label htmlFor="name" className="text-right ml-4 text-lg">
                                                         {matchData.homeTeam.shortName}
                                                     </Label>
@@ -134,7 +150,7 @@ export default function Match({ matchData, predictions }) {
                                             <hr />
                                             <div className="">
                                                 <div className='flex items-center'>
-                                                    <Image src={matchData.awayTeam.crest} width={50} height={50} className=' w-8 h-8' />
+                                                    <Image priority alt={matchData.awayTeam.crest} src={matchData.awayTeam.crest} width={50} height={50} className=' w-8 h-8' />
                                                     <Label htmlFor="username" className="ml-4 text-lg">
                                                         {matchData.awayTeam.shortName}
                                                     </Label>
@@ -160,7 +176,7 @@ export default function Match({ matchData, predictions }) {
                     <div className='flex flex-col items-center justify-center'>
                         <div>Full Time</div>
                         {matchData.status !== 'TIMED'
-                            ? <div>{matchData.score.fullTime.home ? matchData.score.fullTime.home : 0} - {matchData.score.fullTime.away ? matchData.score.fullTime.away : 0}</div>
+                            ? <Badge variant="outline" className={cn('text-gray-800 bg-gray-100 uppercase border-none')}>{matchData.score.fullTime.home ? matchData.score.fullTime.home : 0} - {matchData.score.fullTime.away ? matchData.score.fullTime.away : 0}</Badge>
                             : <Badge variant="outline" className={cn('text-blue-800 bg-blue-100 uppercase border-none')}>{moment(matchData.utcDate).endOf('day').fromNow()}</Badge>
                         }
 

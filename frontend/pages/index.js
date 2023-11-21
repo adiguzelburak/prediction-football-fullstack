@@ -11,11 +11,12 @@ import { useEffect, useState } from 'react';
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Home({ dataUsers, dataMatch, dataProfile, dataPredictions }) {
-  const { user, setUser, setIsAuth } = useUser();
+  const { user, setUser, setIsAuth, isPredictioned, isMatchDataChanged } = useUser();
   const [predictionsData, setPredictionsData] = useState();
+  const [matchesData, setMatchesData] = useState();
   const [openPanelCounter, setOpenPanelCounter] = useState(0);
 
-  const panelCode = () => {
+  const panelCode = async () => {
     if (openPanelCounter <= 5) {
       setOpenPanelCounter(prev => prev + 1);
     } else {
@@ -29,24 +30,33 @@ export default function Home({ dataUsers, dataMatch, dataProfile, dataPrediction
       setUser(dataProfile)
       Cookies.set('user', JSON.stringify(dataProfile))
       setPredictionsData(dataPredictions)
+      setMatchesData(dataMatch)
     } else {
       setIsAuth(false)
+      Cookies.remove('token')
+      Cookies.remove('user')
     }
   }, [dataProfile])
 
   useEffect(() => {
     if (user?._id) {
-      axios.get(`http://localhost:8000/api/predictions/${user._id}`)
+      axios.get(`https://prediction-game-backend-bb3bc6afab92.herokuapp.com/api/predictions/${user._id}`)
         .then((res) => setPredictionsData(res.data))
     }
-  }, [user])
+  }, [user, isPredictioned])
+
+  useEffect(() => {
+    axios.get(`https://prediction-game-backend-bb3bc6afab92.herokuapp.com/api/match`)
+      .then((res) => setMatchesData(res.data))
+
+  }, [isMatchDataChanged])
 
 
   return (
     <main
       className={`mx-auto max-w-7xl py-0 lg:py-4  text-sm ${inter.className}`}
     >
-      <div onClick={() => panelCode()} className='cursor-pointer'><Navbar /></div>
+      <div onClick={() => panelCode()} ><Navbar /></div>
       {openPanelCounter === 5 && <Result data={dataMatch} />}
 
       <div className=' flex flex-col lg:flex-row justify-around'>
@@ -57,7 +67,7 @@ export default function Home({ dataUsers, dataMatch, dataProfile, dataPrediction
         <div className='lg:w-[45%] w-full px-2 lg:px-0'>
           <MatchList
             predictions={predictionsData}
-            matches={dataMatch} />
+            matches={matchesData} />
         </div>
       </div>
     </main>
@@ -66,13 +76,12 @@ export default function Home({ dataUsers, dataMatch, dataProfile, dataPrediction
 
 export async function getServerSideProps(context) {
   const { req } = context
-
   if (req.cookies.token) {
     try {
-      const resUsers = await fetch(`http://localhost:8000/api/users`)
-      const resMatch = await fetch(`http://localhost:8000/api/match`)
-      const resProfile = await axios.get(`http://localhost:8000/api/profile`, { headers: { "Authorization": `Bearer ${req.cookies.token}` } })
-      const resPredictions = await axios.get(`http://localhost:8000/api/predictions/${resProfile.data.user._id}`)
+      const resUsers = await fetch(`https://prediction-game-backend-bb3bc6afab92.herokuapp.com/api/users`)
+      const resMatch = await fetch(`https://prediction-game-backend-bb3bc6afab92.herokuapp.com/api/match`)
+      const resProfile = await axios.get(`https://prediction-game-backend-bb3bc6afab92.herokuapp.com/api/profile`, { headers: { "Authorization": `Bearer ${req.cookies.token}` } })
+      const resPredictions = await axios.get(`https://prediction-game-backend-bb3bc6afab92.herokuapp.com/api/predictions/${resProfile.data.user._id}`)
 
       const dataUsers = await resUsers.json();
       const dataMatch = await resMatch.json();
@@ -86,14 +95,15 @@ export async function getServerSideProps(context) {
   }
   else {
     try {
-      const resUsers = await fetch(`http://localhost:8000/api/users`)
-      const resMatch = await fetch(`http://localhost:8000/api/match`)
+      const resUsers = await fetch(`https://prediction-game-backend-bb3bc6afab92.herokuapp.com/api/users`)
+      const resMatch = await fetch(`https://prediction-game-backend-bb3bc6afab92.herokuapp.com/api/match`)
 
       const dataUsers = await resUsers.json();
       const dataMatch = await resMatch.json();
 
       return { props: { dataUsers, dataMatch } }
     } catch (error) {
+      console.log('hello', error)
       return { props: { message: 'Visitor' } };
     }
   }

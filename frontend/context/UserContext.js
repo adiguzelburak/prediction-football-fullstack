@@ -11,7 +11,11 @@ export const users = {
 
 export const UserContext = createContext({
     user: undefined,
-    setUser: async (user) => null
+    setUser: async (user) => null,
+    isAuth: undefined,
+    setIsAuth: async (user) => null,
+    isPredictioned: undefined,
+    setIsPredictioned: async (user) => null,
 })
 
 export const useUser = () => useContext(UserContext);
@@ -19,9 +23,11 @@ export const useUser = () => useContext(UserContext);
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(users)
     const [isAuth, setIsAuth] = useState(false)
+    const [isPredictioned, setIsPredictioned] = useState(false);
+    const [isMatchDataChanged, setIsMatchDataChanged] = useState(false);
 
     return (
-        <UserContext.Provider value={{ user, setUser, isAuth, setIsAuth }}>
+        <UserContext.Provider value={{ user, setUser, isAuth, setIsAuth, isPredictioned, setIsPredictioned, isMatchDataChanged, setIsMatchDataChanged }}>
             {children}
         </UserContext.Provider>
     )

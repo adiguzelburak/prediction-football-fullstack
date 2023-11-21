@@ -4,7 +4,8 @@ import { Disclosure } from '@headlessui/react'
 import { useRouter } from 'next/router'
 import { Button } from './ui/button'
 import Cookies from 'js-cookie'
-import { LogOut } from 'lucide-react'
+import { LogOut, LogIn } from 'lucide-react'
+import Link from 'next/link'
 
 
 export default function Navbar() {
@@ -57,9 +58,18 @@ export default function Navbar() {
                                 onClick={isAuth ? () => logout() : () => login()}
                                 className='text-white bg-blue-500 space-x-2'
                             >
-                                <div><LogOut className='w-5 h-5' /></div>
+                                <div><LogIn className='w-5 h-5' /></div>
                                 <div>{isAuth ? 'Logout' : 'Login'}</div>
                             </Button>
+                            {!isAuth && (
+                                <Button
+                                    className='text-white bg-blue-500 space-x-2'
+                                >
+                                    <div><LogOut className='w-5 h-5' /></div>
+                                    <Link href='/register'>Register</Link>
+                                </Button>
+                            )}
+
                         </div>
                     </div>
 

@@ -216,7 +216,9 @@ exports.getUser = async (req, res) => {
     }
     else {
         try {
-            const getAllDataResponse = await userDb.find()
+            const getAllDataResponse = await userDb.aggregate([
+                { $sort: { totalPoint: 1 } }
+            ])
             await res.send(getAllDataResponse)
         } catch (error) {
             await res.send({ message: error })
@@ -247,28 +249,27 @@ exports.finishMatch = async (req, res) => {
                 }
             ])
 
-
             getPredictions.forEach(async (prediction, index) => {
                 let point = 0;
 
                 // CONTROL SCORES POINTS
-                if (matchDataById.homeTeamScore === prediction.homeTeamScore) {
+                if (matchDataById.score.fullTime.home === prediction.homeTeamScore) {
                     point += 5;
                 }
-                if (matchDataById.guestTeamScore === prediction.guestTeamScore) {
+                if (matchDataById.score.fullTime.away === prediction.guestTeamScore) {
                     point += 5;
                 }
 
                 // CONTROL MATCH RESULT POINTS
-                if (matchDataById.homeTeamScore > matchDataById.guestTeamScore
+                if (matchDataById.score.fullTime.home > matchDataById.score.fullTime.away
                     && prediction.homeTeamScore > prediction.guestTeamScore) {
                     point += 3;
                 }
-                if (matchDataById.homeTeamScore < matchDataById.guestTeamScore
+                if (matchDataById.score.fullTime.home < matchDataById.score.fullTime.away
                     && prediction.homeTeamScore < prediction.guestTeamScore) {
                     point += 3;
                 }
-                if (matchDataById.homeTeamScore === matchDataById.guestTeamScore
+                if (matchDataById.score.fullTime.home === matchDataById.score.fullTime.away
                     && prediction.homeTeamScore === prediction.guestTeamScore) {
                     point += 3;
                 }
@@ -278,7 +279,7 @@ exports.finishMatch = async (req, res) => {
                 })
 
             })
-            await res.send({ message: 'Points are updated successfully.' })
+            await res.send({ message: 'Points are updated successfully.', matchDataById: matchDataById, getPredictions: getPredictions })
 
         } catch (error) {
             await res.send({ message: error })
