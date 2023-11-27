@@ -22,9 +22,9 @@ function classNames(...classes) {
 export default function Picker({onValueChange}) {
   const [selectedValue, setSelectedValue] = useState(colors[0])
 
-  const handleChange = (newColor) => {
-    setSelectedValue(newColor);
-    onValueChange(newColor);
+  const handleChange = (newValue) => {
+    setSelectedValue(newValue);
+    onValueChange(newValue);
   };
 
   return (
