@@ -12,12 +12,12 @@ This is a Next.js based project that prediction of football match scores.
 
 ## Available Scripts
 
-`Backend`
+### Backend
 Run `npm install` or `yarn` to install dependencies
 
 Run `npm run start` or `yarn start` to start Web App
 
-`Frontend`
+### Frontend
 Run `npm install` or `yarn` to install dependencies
 
 Run `npm run dev` or `yarn dev` to start Web App
